@@ -41,6 +41,10 @@ pollutantmean <- function(directory, pollutant, id=1:332){
     
     ## Get the data: 
     
+    # Rather than pulling all data and then operating on all sets at once, store
+    # access data sequentially and keep only the mean and number of points from 
+    # each data set. Then calculate the mean for all data sets. 
+    
     # Allocate vectors:
     dataMean <- vector("numeric",length(id))
     dataSize <- vector("numeric",length(id))
@@ -48,12 +52,14 @@ pollutantmean <- function(directory, pollutant, id=1:332){
     for (n in 1:length(id)) {
         d <- read.csv(file.path(directory,sprintf("%03d.csv",id[n])))
         tf <- !is.na(d[,pollutant])
+        # Only compute the mean of the data set if at least one value was valid:
         if (any(tf)) {
             dataMean[n] <- mean(d[tf,pollutant])
             dataSize[n] <- sum(tf)
-        } else {
-            dataMean[n] <- 0
-            dataSize[n] <- 0
+        # # Else branch is redundant, since the elements are initialized to 0:
+        #} else {
+        #    dataMean[n] <- 0
+        #    dataSize[n] <- 0
         }
     }
     
