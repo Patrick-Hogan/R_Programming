@@ -23,10 +23,11 @@ pollutantmean <- function(directory, pollutant, id=1:332){
     # Check that the pollutant is a character vector containing exactly one of the allowed names:
     allowedPollutants <- c("sulfate","nitrate");
     stopifnot(is.character(pollutant),length(pollutant)==1,
-              grep(pollutant,allowedPollutants,ignore.case=TRUE)>0)
+              length(grep(pollutant,allowedPollutants,ignore.case=TRUE))>0)
     
     # Check that the ID is an integer list:
     stopifnot(is.integer(id) || (is.numeric(id) && identical(round(id),id)))
+    id = as.integer(id)
     
     # Remove bad values from the ID list: 
     if ( any(id < 1) || any(id > 332) ){
@@ -40,10 +41,22 @@ pollutantmean <- function(directory, pollutant, id=1:332){
     
     ## Get the data: 
     
-    for (n in id){
-        fname <- sprintf("%03d",n)
-        d = read.csv(file.path(directory,fname))
-        
+    # Allocate vectors:
+    dataMean <- vector("numeric",length(id))
+    dataSize <- vector("numeric",length(id))
+    
+    for (n in 1:length(id)) {
+        d <- read.csv(file.path(directory,sprintf("%03d.csv",id[n])))
+        tf <- !is.na(d[,pollutant])
+        if (any(tf)) {
+            dataMean[n] <- mean(d[tf,pollutant])
+            dataSize[n] <- sum(tf)
+        } else {
+            dataMean[n] <- 0
+            dataSize[n] <- 0
+        }
     }
+    
+    sum(dataMean*dataSize)/sum(dataSize)
     
 }
